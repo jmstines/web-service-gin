@@ -17,4 +17,15 @@ Content-Type: application/json
 
 ###
 
+PUT http://localhost:8080/albums/550e8400-e29b-41d4-a716-446655440002
+Content-Type: application/json
+
+{
+        "title": "Sarah Vaughan and Clifford Brown",
+        "artist": "Sarah Vaughan",
+        "price": 2999
+}
+
+###
+
 GET http://localhost:8080/albums/550e8400-e29b-41d4-a716-446655440002

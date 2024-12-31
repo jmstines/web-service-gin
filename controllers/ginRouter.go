@@ -18,10 +18,14 @@ func (r *GinRouter) POST(relativePath string, handlers ...gin.HandlerFunc) {
 	r.engine.POST(relativePath, handlers...)
 }
 
+func (r *GinRouter) PUT(relativePath string, handlers ...gin.HandlerFunc) {
+	r.engine.PUT(relativePath, handlers...)
+}
+
 func (r *GinRouter) PATCH(relativePath string, handlers ...gin.HandlerFunc) {
-	r.engine.POST(relativePath, handlers...)
+	r.engine.PATCH(relativePath, handlers...)
 }
 
 func (r *GinRouter) DELETE(relativePath string, handlers ...gin.HandlerFunc) {
-	r.engine.POST(relativePath, handlers...)
+	r.engine.DELETE(relativePath, handlers...)
 }

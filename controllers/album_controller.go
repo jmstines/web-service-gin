@@ -41,6 +41,27 @@ func PostAlbums(c *gin.Context) {
 	c.IndentedJSON(http.StatusCreated, newAlbum)
 }
 
+func PutAlbumByID(c *gin.Context) {
+	id := c.Param("id")
+	var updatedAlbum models.Album
+
+	if err := c.BindJSON(&updatedAlbum); err != nil {
+		return
+	}
+
+	for i, a := range dataBase.Albums {
+		if a.ID == id {
+			dataBase.CollectionValue -= a.Price
+			dataBase.Albums[i] = updatedAlbum
+			dataBase.CollectionValue += updatedAlbum.Price
+			c.IndentedJSON(http.StatusOK, updatedAlbum)
+			return
+		}
+	}
+
+	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "album not found"})
+}
+
 func GetAlbumCollectionValue(c *gin.Context) {
 	if dataBase.CollectionValue == 0 && len(dataBase.Albums) > 0 {
 		var prices []int64
@@ -61,4 +82,5 @@ func RegisterAlbumRoutes(router Router) {
 	router.GET("/albums/:id", GetAlbumByID)
 	router.GET("/albums/value", GetAlbumCollectionValue)
 	router.POST("/albums", PostAlbums)
+	router.PUT("/albums/:id", PutAlbumByID)
 }
