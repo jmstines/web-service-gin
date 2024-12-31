@@ -27,8 +27,8 @@ func captureOutput(f func()) string {
 func TestLoadAlbums(t *testing.T) {
 	// Create a temporary JSON file with test data
 	testData := []models.Album{
-		{ID: "1", Title: "Test Album 1", Artist: "Test Artist 1", Price: 10.99},
-		{ID: "2", Title: "Test Album 2", Artist: "Test Artist 2", Price: 20.99},
+		{ID: "1", Title: "Test Album 1", Artist: "Test Artist 1", Price: 1099},
+		{ID: "2", Title: "Test Album 2", Artist: "Test Artist 2", Price: 2099},
 	}
 	jsonData, err := json.Marshal(testData)
 	assert.NoError(t, err)

@@ -9,6 +9,7 @@ import (
 )
 
 var Albums []models.Album
+var CollectionValue int64 = 0
 
 func LoadAlbums(filename string) {
 	data, err := os.ReadFile(filename)
