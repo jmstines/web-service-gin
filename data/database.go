@@ -1,24 +1,28 @@
 package dataBase
 
 import (
-	"example/web-service-gin/models"
-	"os"
-
 	"encoding/json"
+	"example/web-service-gin/models"
 	"log"
+	"os"
 )
 
-var Albums []models.Album
+var Albums = make(map[string]models.Album)
 var CollectionValue int64 = 0
 
 func LoadAlbums(filename string) {
 	data, err := os.ReadFile(filename)
 	if err != nil {
-		log.Printf("Failed to read file: %v", err)
+		log.Fatalf("Failed to read file: %v", err)
 	}
 
-	err = json.Unmarshal(data, &Albums)
+	var albums []models.Album
+	err = json.Unmarshal(data, &albums)
 	if err != nil {
-		log.Printf("Failed to unmarshal JSON: %v", err)
+		log.Fatalf("Failed to unmarshal JSON: %v", err)
+	}
+
+	for _, album := range albums {
+		Albums[album.ID] = album
 	}
 }

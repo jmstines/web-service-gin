@@ -12,19 +12,21 @@ import (
 )
 
 func GetAlbums(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, dataBase.Albums)
+	albums := make([]models.Album, 0, len(dataBase.Albums))
+	for _, album := range dataBase.Albums {
+		albums = append(albums, album)
+	}
+	c.IndentedJSON(http.StatusOK, albums)
 }
 
 func GetAlbumByID(c *gin.Context) {
 	id := c.Param("id")
-
-	for _, a := range dataBase.Albums {
-		if a.ID == id {
-			c.IndentedJSON(http.StatusOK, a)
-			return
-		}
+	album, exists := dataBase.Albums[id]
+	if exists {
+		c.IndentedJSON(http.StatusOK, album)
+	} else {
+		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "album not found"})
 	}
-	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "album not found"})
 }
 
 func PostAlbums(c *gin.Context) {
@@ -35,9 +37,7 @@ func PostAlbums(c *gin.Context) {
 	}
 
 	newAlbum.ID = uuid.New().String()
-
-	dataBase.Albums = append(dataBase.Albums, newAlbum)
-	dataBase.CollectionValue += newAlbum.Price
+	dataBase.Albums[newAlbum.ID] = newAlbum
 	c.IndentedJSON(http.StatusCreated, newAlbum)
 }
 
@@ -49,17 +49,14 @@ func PutAlbumByID(c *gin.Context) {
 		return
 	}
 
-	for i, a := range dataBase.Albums {
-		if a.ID == id {
-			dataBase.CollectionValue -= a.Price
-			dataBase.Albums[i] = updatedAlbum
-			dataBase.CollectionValue += updatedAlbum.Price
-			c.IndentedJSON(http.StatusOK, updatedAlbum)
-			return
-		}
+	_, exists := dataBase.Albums[id]
+	if exists {
+		updatedAlbum.ID = id
+		dataBase.Albums[id] = updatedAlbum
+		c.IndentedJSON(http.StatusOK, updatedAlbum)
+	} else {
+		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "album not found"})
 	}
-
-	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "album not found"})
 }
 
 func GetAlbumCollectionValue(c *gin.Context) {
