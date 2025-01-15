@@ -7,10 +7,9 @@ import (
 	"os"
 )
 
-var Albums = make(map[string]models.Album)
 var CollectionValue int64 = 0
 
-func LoadAlbums(filename string) {
+func LoadAlbums(filename string) map[string]models.Album {
 	data, err := os.ReadFile(filename)
 	if err != nil {
 		log.Fatalf("Failed to read file: %v", err)
@@ -22,7 +21,11 @@ func LoadAlbums(filename string) {
 		log.Fatalf("Failed to unmarshal JSON: %v", err)
 	}
 
+	albumsCollection := make(map[string]models.Album)
 	for _, album := range albums {
-		Albums[album.ID] = album
+		albumsCollection[album.ID] = album
+		CollectionValue += album.Price
 	}
+
+	return albumsCollection
 }

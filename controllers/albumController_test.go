@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"bytes"
+	"example/web-service-gin/repos"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -10,9 +11,21 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var albumController *AlbumControllerImp
+
+func init() {
+	repo := repos.NewAlbumRepository()
+	albumController = NewAlbumController(repo)
+}
+
+func setupRepo() repos.AlbumRepository {
+	return repos.NewAlbumRepository()
+}
+
 func TestGetAlbums(t *testing.T) {
+	setupRepo()
 	router := gin.Default()
-	router.GET("/albums", GetAlbums)
+	router.GET("/albums", albumController.GetAlbumByID)
 
 	req, _ := http.NewRequest("GET", "/albums", nil)
 	w := httptest.NewRecorder()
@@ -24,7 +37,7 @@ func TestGetAlbums(t *testing.T) {
 
 func TestGetAlbumByID(t *testing.T) {
 	router := gin.Default()
-	router.GET("/albums/:id", GetAlbumByID)
+	router.GET("/albums/:id", albumController.GetAlbumByID)
 
 	req, _ := http.NewRequest("GET", "/albums/1", nil)
 	w := httptest.NewRecorder()
@@ -43,7 +56,7 @@ func TestGetAlbumByID(t *testing.T) {
 
 func TestPostAlbums(t *testing.T) {
 	router := gin.Default()
-	router.POST("/albums", PostAlbums)
+	router.POST("/albums", albumController.PostAlbums)
 
 	newAlbum := `{"id":"4","title":"The Modern Sound of Betty Carter","artist":"Betty Carter","price":49.99}`
 	req, _ := http.NewRequest("POST", "/albums", bytes.NewBufferString(newAlbum))

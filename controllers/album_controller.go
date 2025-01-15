@@ -1,27 +1,30 @@
 package controllers
 
 import (
-	dataBase "example/web-service-gin/data"
-	"example/web-service-gin/helpers"
 	"example/web-service-gin/models"
+	"example/web-service-gin/services"
 	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
-func GetAlbums(c *gin.Context) {
-	albums := make([]models.Album, 0, len(dataBase.Albums))
-	for _, album := range dataBase.Albums {
-		albums = append(albums, album)
-	}
+type AlbumControllerImp struct {
+	service services.AlbumService
+}
+
+func NewAlbumController(service services.AlbumService) *AlbumControllerImp {
+	return &AlbumControllerImp{service: service}
+}
+
+func (controller *AlbumControllerImp) GetAlbums(c *gin.Context) {
+	albums := controller.service.GetAllAlbums()
 	c.IndentedJSON(http.StatusOK, albums)
 }
 
-func GetAlbumByID(c *gin.Context) {
+func (controller *AlbumControllerImp) GetAlbumByID(c *gin.Context) {
 	id := c.Param("id")
-	album, exists := dataBase.Albums[id]
+	album, exists := controller.service.GetAlbumByID(id)
 	if exists {
 		c.IndentedJSON(http.StatusOK, album)
 	} else {
@@ -29,55 +32,59 @@ func GetAlbumByID(c *gin.Context) {
 	}
 }
 
-func PostAlbums(c *gin.Context) {
+func (controller *AlbumControllerImp) PostAlbums(c *gin.Context) {
 	var newAlbum models.Album
 
 	if err := c.BindJSON(&newAlbum); err != nil {
 		return
 	}
 
-	newAlbum.ID = uuid.New().String()
-	dataBase.Albums[newAlbum.ID] = newAlbum
+	controller.service.CreateAlbum(&newAlbum)
 	c.IndentedJSON(http.StatusCreated, newAlbum)
 }
 
-func PutAlbumByID(c *gin.Context) {
+func (controller *AlbumControllerImp) PutAlbumByID(c *gin.Context) {
 	id := c.Param("id")
-	var updatedAlbum models.Album
+	var albumToUpdate models.Album
 
-	if err := c.BindJSON(&updatedAlbum); err != nil {
+	if err := c.BindJSON(&albumToUpdate); err != nil {
 		return
 	}
 
-	_, exists := dataBase.Albums[id]
+	updatedAlbum, exists := controller.service.UpdateAlbum(id, &albumToUpdate)
 	if exists {
-		updatedAlbum.ID = id
-		dataBase.Albums[id] = updatedAlbum
 		c.IndentedJSON(http.StatusOK, updatedAlbum)
 	} else {
 		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "album not found"})
 	}
 }
 
-func GetAlbumCollectionValue(c *gin.Context) {
-	if dataBase.CollectionValue == 0 && len(dataBase.Albums) > 0 {
-		var prices []int64
-		for _, album := range dataBase.Albums {
-			prices = append(prices, album.Price)
-		}
-		dataBase.CollectionValue = helpers.CalculateSum(prices)
-	}
+func (controller *AlbumControllerImp) GetAlbumCollectionValue(c *gin.Context) {
 
-	value := float64(dataBase.CollectionValue) / 100
+	controller.service.GetAlbumCollectionValue()
+
+	value := float64(controller.service.GetAlbumCollectionValue()) / 100
 	formattedValue := fmt.Sprintf("$ %.2f", value)
 
 	c.IndentedJSON(http.StatusOK, gin.H{"collection_value": formattedValue})
 }
 
-func RegisterAlbumRoutes(router Router) {
-	router.GET("/albums", GetAlbums)
-	router.GET("/albums/:id", GetAlbumByID)
-	router.GET("/albums/value", GetAlbumCollectionValue)
-	router.POST("/albums", PostAlbums)
-	router.PUT("/albums/:id", PutAlbumByID)
+func (controller *AlbumControllerImp) DeleteAlbumByID(c *gin.Context) {
+	id := c.Param("id")
+	_, exists := controller.service.DeleteAlbum(id)
+	if exists {
+
+		c.IndentedJSON(http.StatusNoContent, nil)
+	} else {
+		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "album not found"})
+	}
+}
+
+func (controller *AlbumControllerImp) RegisterAlbumRoutes(router Router) {
+	router.GET("/albums", controller.GetAlbums)
+	router.GET("/albums/:id", controller.GetAlbumByID)
+	router.GET("/albums/value", controller.GetAlbumCollectionValue)
+	router.POST("/albums", controller.PostAlbums)
+	router.PUT("/albums/:id", controller.PutAlbumByID)
+	router.DELETE("/albums/:id", controller.DeleteAlbumByID)
 }
