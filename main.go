@@ -8,28 +8,38 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/fx"
 )
 
 func main() {
-	engine := gin.Default()
-	router := controllers.NewGinRouter(engine)
+	app := fx.New(
+		fx.Provide(
+			// Provide the dependencies for the application.
+			repos.NewAlbumRepository,
+			services.NewAlbumService,
+			controllers.NewAlbumController,
+			gin.Default,
+		),
+		fx.Invoke(registerRoutes),
+	)
 
-	registerControllers(router)
-
-	engine.Run("localhost:8080")
+	app.Run()
 }
 
-func registerControllers(router *controllers.GinRouter) {
-	repo := repos.NewAlbumRepository()
+func registerRoutes(
+	albumController *controllers.AlbumControllerImp,
+	engine *gin.Engine,
+) {
+	router := controllers.NewGinRouter(engine)
+
+	albumController.RegisterAlbumRoutes(router)
 
 	env := os.Getenv("ENV")
 	if env == "local" {
 		// Not Ideal, I couldn't find a different way to load example data for local testing.
 		// .Albums should most likely be private and have a method to load the data.
-		repo.Albums = dataBase.LoadAlbums("data/albums.json")
+		albumController.ImportDatabase(dataBase.LoadAlbums("data/albums.json"))
 	}
 
-	service := services.NewAlbumService(repo)
-	albumController := controllers.NewAlbumController(service)
-	albumController.RegisterAlbumRoutes(router)
+	engine.Run("localhost:8080")
 }

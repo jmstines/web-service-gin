@@ -6,19 +6,23 @@ import (
 	"example/web-service-gin/repos"
 )
 
-type AlbumServiceImp struct {
+type albumServiceImpl struct {
 	repo repos.AlbumRepository
 }
 
-func NewAlbumService(repo repos.AlbumRepository) *AlbumServiceImp {
-	return &AlbumServiceImp{repo: repo}
+func NewAlbumService(repo repos.AlbumRepository) AlbumService {
+	return &albumServiceImpl{repo: repo}
 }
 
-func (service *AlbumServiceImp) GetAlbumByID(id string) (*models.Album, bool) {
+func (service *albumServiceImpl) ImportDatabase(albums map[string]models.Album) {
+	service.repo.ImportDatabase(albums)
+}
+
+func (service *albumServiceImpl) GetAlbumByID(id string) (*models.Album, bool) {
 	return service.repo.GetAlbumByID(id)
 }
 
-func (service *AlbumServiceImp) CreateAlbum(album *models.Album) {
+func (service *albumServiceImpl) CreateAlbum(album *models.Album) {
 	service.repo.CreateAlbum(album)
 
 	currentValue := service.repo.GetAlbumCollectionValue()
@@ -26,7 +30,7 @@ func (service *AlbumServiceImp) CreateAlbum(album *models.Album) {
 	service.repo.UpdateAlbumCollectionValue(currentValue + album.Price)
 }
 
-func (service *AlbumServiceImp) UpdateAlbum(id string, album *models.Album) (*models.Album, bool) {
+func (service *albumServiceImpl) UpdateAlbum(id string, album *models.Album) (*models.Album, bool) {
 	currentValue := service.repo.GetAlbumCollectionValue()
 
 	currentAlbum, exists := service.repo.GetAlbumByID(id)
@@ -39,15 +43,15 @@ func (service *AlbumServiceImp) UpdateAlbum(id string, album *models.Album) (*mo
 	return nil, false
 }
 
-func (service *AlbumServiceImp) GetAllAlbums() []models.Album {
+func (service *albumServiceImpl) GetAllAlbums() []models.Album {
 	return service.repo.GetAllAlbums()
 }
 
-func (service *AlbumServiceImp) DeleteAlbum(id string) (*models.Album, bool) {
+func (service *albumServiceImpl) DeleteAlbum(id string) (*models.Album, bool) {
 	return service.repo.DeleteAlbum(id)
 }
 
-func (service *AlbumServiceImp) GetAlbumCollectionValue() int64 {
+func (service *albumServiceImpl) GetAlbumCollectionValue() int64 {
 	albums := service.repo.GetAllAlbums()
 	if service.repo.GetAlbumCollectionValue() == 0 && len(albums) > 0 {
 		var prices []int64

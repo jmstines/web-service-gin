@@ -17,6 +17,10 @@ func NewAlbumController(service services.AlbumService) *AlbumControllerImp {
 	return &AlbumControllerImp{service: service}
 }
 
+func (controller *AlbumControllerImp) ImportDatabase(albums map[string]models.Album) {
+	controller.service.ImportDatabase(albums)
+}
+
 func (controller *AlbumControllerImp) GetAlbums(c *gin.Context) {
 	albums := controller.service.GetAllAlbums()
 	c.IndentedJSON(http.StatusOK, albums)
